@@ -27,6 +27,7 @@ export type GameListing = {
     condition: ListingCondition;
     sellerId: string;
     sellerName: string;
+    sellerEmail?: string;
     status: ListingStatus;
     createdAt: string;
     updatedAt: string;

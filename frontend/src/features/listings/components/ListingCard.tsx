@@ -1,4 +1,5 @@
 import type { GameListing } from "@/types/listing";
+import Link from "next/link";
 
 type ListingCardProps = {
     listing: GameListing;
@@ -6,6 +7,7 @@ type ListingCardProps = {
 
 export default function ListingCard({ listing }: ListingCardProps) {
     return (
+        <Link href={`/listings/${listing.id}`} className="block">
         <article className="overflow-hidden rounded-xl border border-grey-600 bg-gray-900 text-white shadow-sm transition hover:-translate-y-1 hover:border-gray-500 hover:shadow-lg">
             <img
                 src={listing.imageUrl}
@@ -46,5 +48,6 @@ export default function ListingCard({ listing }: ListingCardProps) {
 
             </div>
         </article>
+        </Link>
     );
 };
