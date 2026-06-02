@@ -8,7 +8,7 @@ type ListingCardProps = {
 export default function ListingCard({ listing }: ListingCardProps) {
     return (
         <Link href={`/listings/${listing.id}`} className="block">
-        <article className="overflow-hidden rounded-xl border border-grey-600 bg-gray-900 text-white shadow-sm transition hover:-translate-y-1 hover:border-gray-500 hover:shadow-lg">
+        <article className="flex h-full flex-col overflow-hidden rounded-xl border border-grey-600 bg-gray-900 text-white shadow-sm transition hover:-translate-y-1 hover:border-gray-500 hover:shadow-lg">
             <img
                 src={listing.imageUrl}
                 alt={listing.title}
@@ -44,7 +44,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
                     </span>
                 </div>
 
-                <p className="text-sm text-gray-500">Seller: {listing.sellerName}</p>
+                <p className="mt-auto text-sm text-gray-500">Seller: {listing.sellerName}</p>
 
             </div>
         </article>
