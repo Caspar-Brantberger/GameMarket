@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type {GamePlatform, ListingCondition,GameListing} from "@/types/listing";
+import Link from "next/dist/client/link";
 
 export default function CreateListingPage() {
     const [title, setTitle] = useState("");
@@ -65,6 +66,13 @@ export default function CreateListingPage() {
     <main className="min-h-screen bg-black px-6 py-10 text-white">
         <section className="mx-auto max-w-3xl space-y-8">
         <div>
+            <Link
+        href="/listings"
+        className="mb-4 inline-flex items-center rounded-lg border border-gray-600 bg-gray-900 px-4 py-2 text-sm font-medium text-white transition hover:-translate-y-0.5 hover:border-gray-400 hover:bg-gray-800 hover:shadow-lg"
+        >
+            ← Back to Listings
+            </Link>
+            
             <h1 className="text-3xl font-bold">Create listing</h1>
             <p className="mt-2 text-gray-400">
             Create a new game listing. For now, it only logs the listing in the console.
