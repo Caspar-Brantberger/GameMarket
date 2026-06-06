@@ -1,39 +1,70 @@
 import type { Request, Response } from "express";
+import {createNewListing, getAllListings, getListing, updateExistingListing, deleteExistingListing} from "../services/listingService";
 
-export function getListings(req: Request, res: Response) {
-    res.json({
-    message: "Get all listings",
-    });
+export async function getListings(req: Request, res: Response) {
+    try {
+        const listings = await getAllListings();
+        res.json(listings);
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching listings", error });
+    }
 }
 
-export function getListingById(req: Request, res: Response) {
+export async function getListingById(req: Request<{ id: string }>, res: Response) {
     const { id } = req.params;
 
-    res.json({
-    message: `Get listing with id ${id}`,
-    });
+    try {
+        const listing = await getListing(id);
+        if (listing) {
+            res.json(listing);
+        } else {
+            res.status(404).json({ message: "Listing not found" });
+        }
+    } catch (error) {
+        res.status(500).json({ message: "Error fetching listing", error });
+    }
 }
 
-export function createListing(req: Request, res: Response) {
-    res.status(201).json({
-    message: "Create listing",
-    data: req.body,
-    });
+export async function createListing(req: Request, res: Response) {
+    const listingData = req.body;
+    try {
+        const newListing = await createNewListing(listingData);
+        res.status(201).json(newListing);
+    } catch (error) {
+        res.status(500).json({ message: "Error creating listing", error });
+    }
 }
 
-export function updateListing(req: Request, res: Response) {
+export async function updateListing(req: Request<{ id: string }>, res: Response) {
+    const { id } = req.params;
+    const updatedData = req.body;
+
+    try {
+        const updatedListing = await updateExistingListing(id, updatedData);
+
+        if (updatedListing) {
+            res.json(updatedListing);
+        } else {
+            res.status(404).json({ message: "Listing not found" });
+        }
+        }   catch (error) {
+        res.status(500).json({ message: "Error updating listing", error });
+    }
+}
+
+
+export async function deleteListing(req: Request<{ id: string }>, res: Response) {
     const { id } = req.params;
 
-    res.json({
-    message: `Update listing with id ${id}`,
-    data: req.body,
-    });
-}
+    try {
+    const wasDeleted = await deleteExistingListing(id);
 
-export function deleteListing(req: Request, res: Response) {
-    const { id } = req.params;
+    if (!wasDeleted) {
+        return res.status(404).json({ message: "Listing not found" });
+    }
 
-    res.json({
-    message: `Delete listing with id ${id}`,
-    });
+    return res.json({ message: "Listing deleted successfully" });
+    } catch (error) {
+    return res.status(500).json({ message: "Error deleting listing", error });
+    }
 }
