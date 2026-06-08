@@ -1,65 +1,116 @@
-import type { GameListing } from "../types/listing";
+import prisma from "../lib/prisma";
+import type {
+    GamePlatform,
+    ListingCondition,
+    ListingStatus,
+} from "../generated/prisma/client";
 
-// This is a placeholder for the actual database operations
-// In a real application, you would replace this with actual database queries
-const listings: GameListing[] = [
-    {
-    id: "1",
-    title: "Batman: Arkham Knight",
-    description: "I am Batman!",
-    price: 19.99,
-    platform: "PC",
-    imageUrl: "/images/batman.jpg",
-    genre: "Science Fiction",
-    condition: "New",
-    sellerId: "seller-1",
-    sellerName: "Superman",
-    sellerEmail: "superman@example.com",
-    status: "Available",
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString(),
-    location: "Texas",
+export type CreateListingData = {
+    title: string;
+    description: string;
+    price: number;
+    platform: GamePlatform;
+    imageUrl: string;
+    genre?: string;
+    condition: ListingCondition;
+    status?: ListingStatus;
+    location: string;
+    sellerId: string;
+};
+
+export type UpdateListingData = Partial<
+    Omit<CreateListingData, "sellerId">
+>;
+
+export async function findAllListings() {
+    return prisma.listing.findMany({
+    include: {
+    seller: {
+        select: {
+            id: true,
+            username: true,
+            email: true,
+        },
+        },
     },
-];
-
-export function findAllListings(): GameListing[] {
-    return listings;
+    orderBy: {
+        createdAt: "desc",
+    },
+    });
 }
 
-export function findListingById(id: string): GameListing | undefined {
-    return listings.find(listing => listing.id === id);
+export async function findListingById(id: string) {
+    return prisma.listing.findUnique({
+    where: { id },
+    include: {
+        seller: {
+        select: {
+            id: true,
+            username: true,
+            email: true,
+        },
+        },
+    },
+    });
 }
 
-export function createListing(
-    listingData: Omit<GameListing, "id" | "createdAt" | "updatedAt">
-): GameListing {
-    const now = new Date().toISOString();
-
-    const newListing: GameListing = {
-    id: crypto.randomUUID(),
-    ...listingData,
-    createdAt: now,
-    updatedAt: now,
-    };
-
-    listings.push(newListing);
-    return newListing;
+export async function createListing(data: CreateListingData) {
+    return prisma.listing.create({
+    data: {
+        title: data.title,
+        description: data.description,
+        price: data.price,
+        platform: data.platform,
+        imageUrl: data.imageUrl,
+        genre: data.genre,
+        condition: data.condition,
+        status: data.status ?? "AVAILABLE",
+        location: data.location,
+        sellerId: data.sellerId,
+    },
+    include: {
+        seller: {
+        select: {
+            id: true,
+            username: true,
+            email: true,
+        },
+        },
+    },
+    });
 }
 
-export function updateListing(id: string, updatedListing: Partial<GameListing>): GameListing | undefined {
-    const listing = findListingById(id);
-    if (listing) {
-        Object.assign(listing, updatedListing, { updatedAt: new Date().toISOString() });
-        return listing;
-    }
+export async function updateListing(
+    id: string,
+    data: UpdateListingData
+) {
+    try {
+    return await prisma.listing.update({
+        where: { id },
+        data,
+        include: {
+        seller: {
+            select: {
+            id: true,
+            username: true,
+            email: true,
+            },
+        },
+        },
+    });
+    } catch {
     return undefined;
+    }
 }
 
-export function deleteListing(id: string): boolean {
-    const index = listings.findIndex(listing => listing.id === id);
-    if (index !== -1) {
-        listings.splice(index, 1);
-        return true;
-    }
+export async function deleteListing(id: string): Promise<boolean> {
+    try {
+    await prisma.listing.delete({
+        where: { id },
+    });
+
+    return true;
+    } catch {
     return false;
+    }
 }

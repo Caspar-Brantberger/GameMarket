@@ -3,8 +3,8 @@ export type User = {
     username: string;
     email: string;
     passwordHash: string;
-    createdAt: string;
-    updatedAt: string;
+    createdAt: Date;
+    updatedAt: Date;
 
 };
 

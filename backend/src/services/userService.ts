@@ -1,9 +1,9 @@
 import { getAllUsers, getUserById, updateUser, deleteUser } from "../repositories/userRepository";
-import { AuthResponse } from "../types/auth";
+import type { AuthResponse } from "../types/auth";
 import type { User } from "../types/user";
 
-export function getUserProfile(userId: string): AuthResponse {
-    const user = getUserById(userId);
+export async function getUserProfile(userId: string): Promise<AuthResponse> {
+    const user = await getUserById(userId);
     if (!user) {
         throw new Error("User not found");
     }
@@ -12,25 +12,25 @@ export function getUserProfile(userId: string): AuthResponse {
 }
 
 
-export function getAllUserProfiles(): AuthResponse[] {
-    const users = getAllUsers();
+export async function getAllUserProfiles(): Promise<AuthResponse[]> {
+    const users = await getAllUsers();
     return users.map(user => ({ user }));
 }
 
-export function updateUserProfile(userId: string, data: Partial<Pick<User, "username" | "email">>): AuthResponse {
-    const updatedUser = updateUser(userId, data);
+export async function updateUserProfile(userId: string, data: Partial<Pick<User, "username" | "email">>): Promise<AuthResponse> {
+    const updatedUser = await updateUser(userId, data);
     if (!updatedUser) {
         throw new Error("User not found");
     }
     return { user: updatedUser };
 }
 
-export function deleteUserAccount(userId: string): void {
-    const user = getUserById(userId);
+export async function deleteUserAccount(userId: string): Promise<void> {
+    const user = await getUserById(userId);
     if (!user) {
         throw new Error("User not found");
     }
-    const success = deleteUser(userId);
+    const success = await deleteUser(userId);
     if (!success) {
         throw new Error("Failed to delete user");
     }

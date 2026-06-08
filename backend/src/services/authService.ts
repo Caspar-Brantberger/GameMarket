@@ -2,24 +2,24 @@ import type {LoginRequest, RegisterRequest, AuthResponse} from "../types/auth";
 import {createUser, getUserByEmail,getUserById,getAllUsers,updateUser,deleteUser} from "../repositories/userRepository";
 
 
-export function registerUser(data: RegisterRequest): AuthResponse {
-    const existingUser = getUserByEmail(data.email);
+export async function registerUser(data: RegisterRequest): Promise<AuthResponse> {
+    const existingUser = await getUserByEmail(data.email);
 
     if (existingUser) {
         throw new Error("Email already in use");
     }
 
-    const user = createUser({
-        username: data.username,
-        email: data.email,
-        passwordHash: data.password, // In a real app, hash the password!
+    const user = await createUser({
+    username: data.username,
+    email: data.email,
+    passwordHash: data.password,
     });
     return { user };
 }
 
-export function loginUser(data: LoginRequest): AuthResponse {
+export async function loginUser(data: LoginRequest): Promise<AuthResponse> {
 
-    const user = getUserByEmail(data.email);
+    const user = await getUserByEmail(data.email);
     
     if(!user){
         throw new Error("Invalid email or password");

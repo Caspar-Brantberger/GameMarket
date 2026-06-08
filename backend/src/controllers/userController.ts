@@ -2,9 +2,9 @@ import type{Request, Response} from "express";
 import { getUserProfile, getAllUserProfiles, updateUserProfile, deleteUserAccount } from "../services/userService";
 import type {User} from "../types/user";
 
-export function getUsers(req: Request, res: Response) {
+export  async function getUsers(req: Request, res: Response) {
     try {
-    const users = getAllUserProfiles();
+    const users = await getAllUserProfiles();
 
     return res.json(users);
     } catch (error) {
@@ -15,11 +15,11 @@ export function getUsers(req: Request, res: Response) {
     }
 }
 
-export function getUserById(req: Request<{ id: string }>, res: Response) {
+export  async function getUserById(req: Request<{ id: string }>, res: Response) {
     const { id } = req.params;
 
     try {
-    const user = getUserProfile(id);
+    const user = await getUserProfile(id);
 
     return res.json(user);
     } catch (error) {
@@ -29,12 +29,12 @@ export function getUserById(req: Request<{ id: string }>, res: Response) {
     }
 }
 
-export function updateUser(req: Request<{ id: string }>, res: Response) {
+export async function updateUser(req: Request<{ id: string }>, res: Response) {
     const { id } = req.params;
     const updatedData = req.body as Partial<Pick<User, "username" | "email">>;
 
     try {
-    const updatedUser = updateUserProfile(id, updatedData);
+    const updatedUser = await updateUserProfile(id, updatedData);
 
     return res.json({
         message: "User updated successfully",
@@ -47,11 +47,11 @@ export function updateUser(req: Request<{ id: string }>, res: Response) {
     }
 }
 
-export function deleteUser(req: Request<{ id: string }>, res: Response) {
+export async function deleteUser(req: Request<{ id: string }>, res: Response) {
     const { id } = req.params;
 
     try {
-    deleteUserAccount(id);
+    await deleteUserAccount(id);
 
     return res.json({
         message: "User deleted successfully",
