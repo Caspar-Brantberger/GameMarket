@@ -6,20 +6,50 @@ import { useState } from "react";
 export default function LoginPage() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
 
-    function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
-        // Here you would normally send the login data to your backend API
-        console.log("Logging in with:", { email});
-        alert("Login successful! (This is a mock implementation.)");
-    }
+        setError("");
+        try {
+    setLoading(true);
 
-    const loginData = {
+    const response = await fetch(
+    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
+    {
+        method: "POST",
+        headers: {
+        "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
         email,
         password,
-    };
+        }),
+    }
+    );
 
-    console.log("Current login data:", loginData);
+    const data = await response.json();
+
+    if (!response.ok) {
+    throw new Error(
+        data.error ?? data.message ?? "Invalid email or password"
+    );
+    }
+
+    console.log("Logged in user:", data.user);
+    alert("Login successful!");
+} catch (error) {
+    setError(
+    error instanceof Error
+        ? error.message
+        : "Something went wrong"
+    );
+} finally {
+    setLoading(false);
+}
+    }
+    
 
     return (
         <main className="min-h-screen bg-black px-6 py-10 text-white">
@@ -44,6 +74,7 @@ export default function LoginPage() {
                             id="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
+                            required
                             className="mt-1 block w-full bg-gray-800 text-gray-300 placeholder:text-gray-500 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Enter your email"
                         />
@@ -57,18 +88,25 @@ export default function LoginPage() {
                             type="password"
                             id="password"
                             value={password}
+                            required
                             onChange={(e) => setPassword(e.target.value)}
                             className="mt-1 block w-full bg-gray-800 text-gray-300 placeholder:text-gray-500 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Enter your password"
                         />
                     </div>
+                    {error && (
+                    <p className="rounded-md border border-red-700 bg-red-950 p-3 text-sm text-red-300">
+                    {error}
+                    </p>
+                        )}
+
 
                     <div>
                         <button
                             type="submit"
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
-                            Login
+                            {loading ? "Logging in...": "Login"}
                         </button>
                     </div>
                 </form>
