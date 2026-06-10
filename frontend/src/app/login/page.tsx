@@ -37,6 +37,9 @@ export default function LoginPage() {
     );
     }
 
+    localStorage.setItem("currentUser",JSON.stringify(data.user));
+    alert("Log in successful")
+
     console.log("Logged in user:", data.user);
     alert("Login successful!");
 } catch (error) {

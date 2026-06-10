@@ -1,10 +1,19 @@
 "use client";
 
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import type {GamePlatform, ListingCondition,GameListing} from "@/types/listing";
 import Link from "next/dist/client/link";
+import { useRouter } from "next/navigation";
 
 export default function CreateListingPage() {
+    const router = useRouter();
+
+
+    //const [sellerId, setSellerId] = useState("");
+    //const [checkingLogin, setCheckingLogin] = useState(true);
+    const [submitting, setSubmitting] = useState(false);
+    const [error, setError] = useState("");
+
     const [title, setTitle] = useState("");
     const [description, setDescription] = useState("");
     const [price, setPrice] = useState("");
@@ -13,11 +22,55 @@ export default function CreateListingPage() {
     const [imageUrl, setImageUrl] = useState("");
     const [genre, setGenre] = useState("");
     const [location, setLocation] = useState("");
-    const [status, setStatus] = useState("");
-    const [sellerName, setSellerName] = useState("");
-    const [sellerEmail, setSellerEmail] = useState("");
 
-    function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
+    function mapPlatform(platform: GamePlatform){
+        const platformMap = {
+        PC: "PC",
+        PlayStation: "PLAYSTATION",
+        Xbox: "XBOX",
+        "Nintendo Switch": "NINTENDO_SWITCH",
+        Mobile: "MOBILE",
+    } as const;
+
+    return platformMap[platform];
+
+    }
+
+    function mapCondition(condition: ListingCondition){
+    const conditionMap = {
+
+        New: "NEW",
+        Used: "USED",
+        "Like New": "LIKE_NEW",
+        Refurbished: "REFURBISHED",
+        Damaged: "DAMAGED",
+    } as const;
+
+    return conditionMap[condition];
+        
+    }
+
+    useEffect(() => {
+        const storedUser = localStorage.getItem("currentUser");
+
+        if(!storedUser){
+            router.replace("/login");
+            return;
+        }
+        try{
+            const currentUser = JSON.parse(storedUser);
+
+            if(!currentUser.id){
+                localStorage.removeItem("currentUser");
+                router.replace("/login");
+            }
+        }catch{
+            localStorage.removeItem("currentUser");
+            router.replace("/login");
+        }
+    }, [router]);
+
+    async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
 
         const file = e.target.files?.[0];
         
@@ -36,34 +89,92 @@ export default function CreateListingPage() {
         setImageUrl(imageUrl);
 
     }
-    function handleSubmit(e: React.FormEvent) {
+    async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        setError("");
 
-        const newListing: GameListing = {
-            id:crypto.randomUUID(),
+        const storedUser = localStorage.getItem("currentUser")
+
+    if (!storedUser) {
+    router.replace("/login");
+    return;
+    }
+    
+    let sellerId: string;
+
+    try {
+    const currentUser = JSON.parse(storedUser);
+
+    if (!currentUser.id) {
+        localStorage.removeItem("currentUser");
+        router.replace("/login");
+        return;
+    }
+
+    sellerId = currentUser.id;
+    } catch {
+    localStorage.removeItem("currentUser");
+    router.replace("/login");
+    return;
+    }
+
+    
+
+
+    if (!imageUrl) {
+    setError("Please select an image.");
+    return;
+    }
+
+    try {
+    setSubmitting(true);
+
+    const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/listings`,
+        {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
             title,
             description,
             price: Number(price),
-            platform,
-            condition,
-            imageUrl: imageUrl || "/images/default-game.jpg",
+            platform: mapPlatform(platform),
+            condition: mapCondition(condition),
+            imageUrl,
             genre,
             location,
-            status: "Available",
-            sellerName,
-            sellerEmail,
-            sellerId: "mockSellerId",
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-            
-        };
+            status: "AVAILABLE",
+            sellerId,
+        }),
+        }
+    );
 
-        console.log("New Listing:", newListing);
-        alert("Listing created successfully! Check the console for details.");
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new Error(
+        data.message ?? data.error ?? "Could not create listing"
+        );
+    }
+
+    alert("Listing created successfully!");
+    router.push("/listings");
+    } catch (error) {
+    setError(
+        error instanceof Error
+        ? error.message
+        : "Something went wrong"
+    );
+    } finally {
+    setSubmitting(false);
+    }
     }
 
         return (
     <main className="min-h-screen bg-black px-6 py-10 text-white">
+        Checking login ...
         <section className="mx-auto max-w-3xl space-y-8">
         <div>
             <Link
@@ -165,30 +276,6 @@ export default function CreateListingPage() {
             </div>
             </div>
 
-            <div className="grid gap-5 sm:grid-cols-2">
-            <div>
-                <label className="block text-sm font-medium">Seller name</label>
-                <input
-                value={sellerName}
-                onChange={(e) => setSellerName(e.target.value)}
-                required
-                placeholder="Cool seller name"
-                className="mt-1 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white"
-                />
-            </div>
-
-            <div>
-                <label className="block text-sm font-medium">Seller email</label>
-                <input
-                value={sellerEmail}
-                onChange={(e) => setSellerEmail(e.target.value)}
-                type="email"
-                placeholder="seller@example.com"
-                className="mt-1 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white"
-                />
-            </div>
-            </div>
-
             <div>
             <label className="block text-sm font-medium">Location</label>
             <input
@@ -218,14 +305,22 @@ export default function CreateListingPage() {
             )}
             </div>
 
+            {error && (
+            <p className="rounded-md border border-red-700 bg-red-950 p-3 text-sm text-red-300">
+            {error}
+            </p>
+            )}
+
             <button
             type="submit"
+            disabled={submitting}
             className="rounded-lg bg-green-500 px-4 py-2 font-medium text-black transition hover:bg-green-400 hover:shadow-lg"
             >
-            Create listing
+            {submitting ? "Create listing..." : "Create listing"}
             </button>
         </form>
         </section>
     </main>
+
     );
-}
+    }
