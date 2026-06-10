@@ -3,46 +3,70 @@
 import Link from "next/link";
 import { useState } from "react";
 
+
 export default function RegisterPage() {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState(""); 
+    const [loading,setLoading] = useState(false);
+    const [error,setError] = useState("");
 
-    function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+        async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
+        setError("");
 
         if(password !== confirmPassword){
             alert("Passwords do not match!");
             return;
         }
+        try{
+            setLoading(true);
+            const response = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL}/api/auth/register`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        username,
+                        email,
+                        password,
+                    }),
+                }
+            );
+            const data = await response.json();
+            if(!response.ok){
+                throw new Error(data.error ?? data.message ?? "Could not create account");
+            }
+            console.log("Registered user: ",data.user);
+            alert("Account created successfully!");
 
-        const newUser = {
-            id: crypto.randomUUID(),
-            username,
-            email,
-            password,
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString(),
-        };
+            setUsername("");
+            setEmail("");
+            setPassword("");
+            setConfirmPassword("");
 
-        // Here you would normally send the registration data to your backend API
-        console.log("Registering  new user:", { username: newUser.username, email: newUser.email, createdAt: newUser.createdAt });
-        alert("Registration successful! (This is a mock implementation.)");
+        
 
-        // Clear the form
-        setUsername("");
-        setEmail("");
-        setPassword("");
-        setConfirmPassword("");
+        }catch (error){
+            setError(
+                error instanceof Error 
+                ? error.message 
+                : "Something went wrong"
+            );
+        }finally {
+            setLoading(false);
+        }
 
-    }
+        }
     return(
         <main className="min-h-screen bg-black px-6 py-10 text-white">
             <section className="mx-auto max-w-xl space-y-8">
                 <div>
 
-                    <div className="flex flex-col item-start gap-2">
+                    <div className="flex flex-col items-start gap-2">
                     <Link href="/login" className="text-blue-500 hover:underline">
                         Already have an account? Login here.
                     </Link>
@@ -120,6 +144,7 @@ export default function RegisterPage() {
                     </div>
 
                     <div>
+                        
                         <button
                             type="submit"
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
