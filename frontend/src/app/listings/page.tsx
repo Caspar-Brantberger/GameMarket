@@ -70,8 +70,6 @@ export default function ListingsPage() {
         No listings found.
         </div>
         )}
-
-        <ListingGrid listings={filteredListings} />
         </section>
     </main>
     );
