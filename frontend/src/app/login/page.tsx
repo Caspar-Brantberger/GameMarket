@@ -38,6 +38,7 @@ export default function LoginPage() {
     }
 
     localStorage.setItem("currentUser",JSON.stringify(data.user));
+    window.location.href = "/";
     alert("Log in successful")
 
     console.log("Logged in user:", data.user);
