@@ -10,10 +10,13 @@ export default function ListingCard({ listing }: ListingCardProps) {
         <Link href={`/listings/${listing.id}`} className="block">
         <article className="flex h-full flex-col overflow-hidden rounded-xl border border-grey-600 bg-gray-900 text-white shadow-sm transition hover:-translate-y-1 hover:border-gray-500 hover:shadow-lg">
             <img
-                src={listing.imageUrl}
+                src={listing.imageUrl || "/images/No.jpg"}
                 alt={listing.title}
-                className="h-48 w-full object-cover bg-gray-800"
-                />
+                onError={(event) => {
+                event.currentTarget.src = "/images/No.jpg";
+                }}
+            className="h-48 w-full rounded-lg object-cover"
+            />
 
             <div className="space-y-3 p-4">
                 <div className="flex items-start justify-between gap-4 ">

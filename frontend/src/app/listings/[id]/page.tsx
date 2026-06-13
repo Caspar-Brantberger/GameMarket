@@ -61,7 +61,7 @@ const listing: ListingDetails = await response.json();
             <h1 className="text-2xl font-bold">{listing.title}</h1>
 
             <img
-            src={listing.imageUrl}
+            src={listing.imageUrl || "/images/No.jpg"}
             alt={listing.title}
             className="my-4 max-h-[500px] w-full rounded-xl object-cover"
             />

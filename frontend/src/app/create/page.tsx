@@ -142,7 +142,7 @@ export default function CreateListingPage() {
             price: Number(price),
             platform: mapPlatform(platform),
             condition: mapCondition(condition),
-            imageUrl,
+            imageUrl: imageUrl.trim() || "/images/No.jpg",
             genre,
             location,
             status: "AVAILABLE",
@@ -186,7 +186,7 @@ export default function CreateListingPage() {
             
             <h1 className="text-3xl font-bold">Create listing</h1>
             <p className="mt-2 text-gray-400">
-            Create a new game listing. For now, it only logs the listing in the console.
+            Create a new game listing and publish it on GameMarket.
             </p>
         </div>
 
@@ -288,22 +288,37 @@ export default function CreateListingPage() {
             </div>
 
             <div>
-            <label className="block text-sm font-medium">Game image</label>
-            <input
-                type="file"
-                accept="image/jpeg,image/jpg"
-                onChange={handleImageChange}
-                className="mt-1 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white"
-            />
+    <label
+    htmlFor="imageUrl"
+    className="block text-sm font-medium"
+    >
+    Game image URL
+    </label>
 
-            {imageUrl && (
-                <img
-                src={imageUrl}
-                alt="Preview"
-                className="mt-4 h-64 w-full rounded-xl object-cover"
-                />
-            )}
-            </div>
+    <input
+    id="imageUrl"
+    type="url"
+    value={imageUrl}
+    onChange={(e) => setImageUrl(e.target.value)}
+    placeholder="https://example.com/game-cover.jpg"
+    className="mt-1 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white"
+    />
+
+    <p className="mt-2 text-sm text-gray-400">
+    Leave empty to use the default GameMarket image.
+    </p>
+
+    <img
+    src={imageUrl.trim() || "/images/No.jpg"}
+    alt="Listing preview"
+    onError={(event) => {
+        event.currentTarget.src = "/images/No.jpg";
+    }}
+    className="mt-4 h-64 w-full rounded-xl object-cover"
+    />
+    </div>
+
+            
 
             {error && (
             <p className="rounded-md border border-red-700 bg-red-950 p-3 text-sm text-red-300">
