@@ -1,70 +1,164 @@
 import type { Request, Response } from "express";
-import {createNewListing, getAllListings, getListing, updateExistingListing, deleteExistingListing} from "../services/listingService";
+import type { AuthenticatedRequest } from "../middleware/requireAuth";
+
+import {
+    createNewListing,
+    getAllListings,
+    getListing,
+    updateExistingListing,
+    deleteExistingListing,
+} from "../services/listingService";
 
 export async function getListings(req: Request, res: Response) {
     try {
-        const listings = await getAllListings();
-        res.json(listings);
+    const listings = await getAllListings();
+
+    return res.status(200).json(listings);
     } catch (error) {
-        res.status(500).json({ message: "Error fetching listings", error });
+    return res.status(500).json({
+        message: "Error fetching listings",
+    });
     }
 }
 
-export async function getListingById(req: Request<{ id: string }>, res: Response) {
+export async function getListingById(
+    req: Request<{ id: string }>,
+    res: Response
+) {
+    try {
+    const { id } = req.params;
+    const listing = await getListing(id);
+
+    if (!listing) {
+        return res.status(404).json({
+        message: "Listing not found",
+        });
+    }
+
+    return res.status(200).json(listing);
+    } catch (error) {
+    return res.status(500).json({
+        message: "Error fetching listing",
+    });
+    }
+}
+
+export async function createListing(
+    req: AuthenticatedRequest,
+    res: Response
+) {
+    try {
+    if (!req.userId) {
+        return res.status(401).json({
+        message: "Authentication required",
+        });
+    }
+
+    const listingData = {
+        ...req.body,
+        sellerId: req.userId,
+    };
+
+    const newListing = await createNewListing(listingData);
+
+    return res.status(201).json(newListing);
+    } catch (error) {
+    return res.status(400).json({
+        message: "Error creating listing",
+        error: (error as Error).message,
+    });
+    }
+}
+
+export async function updateListing(
+    req: AuthenticatedRequest,
+    res: Response
+) {
+    try {
     const { id } = req.params;
 
-    try {
-        const listing = await getListing(id);
-        if (listing) {
-            res.json(listing);
-        } else {
-            res.status(404).json({ message: "Listing not found" });
-        }
+    if (!req.userId) {
+        return res.status(401).json({
+        message: "Authentication required",
+        });
+    }
+
+    const existingListing = await getListing(id);
+
+    if (!existingListing) {
+        return res.status(404).json({
+        message: "Listing not found",
+        });
+    }
+
+    if (existingListing.sellerId !== req.userId) {
+        return res.status(403).json({
+        message: "You are not allowed to update this listing",
+        });
+    }
+
+    
+    const { sellerId, ...updatedData } = req.body;
+
+    const updatedListing = await updateExistingListing(id, updatedData);
+
+    if (!updatedListing) {
+        return res.status(404).json({
+        message: "Listing not found",
+        });
+    }
+
+    return res.status(200).json(updatedListing);
     } catch (error) {
-        res.status(500).json({ message: "Error fetching listing", error });
+    return res.status(500).json({
+        message: "Error updating listing",
+        error: (error as Error).message,
+    });
     }
 }
 
-export async function createListing(req: Request, res: Response) {
-    const listingData = req.body;
+export async function deleteListing(
+    req: AuthenticatedRequest,
+    res: Response
+) {
     try {
-        const newListing = await createNewListing(listingData);
-        res.status(201).json(newListing);
-    } catch (error) {
-        res.status(500).json({ message: "Error creating listing", error });
-    }
-}
-
-export async function updateListing(req: Request<{ id: string }>, res: Response) {
-    const { id } = req.params;
-    const updatedData = req.body;
-
-    try {
-        const updatedListing = await updateExistingListing(id, updatedData);
-
-        if (updatedListing) {
-            res.json(updatedListing);
-        } else {
-            res.status(404).json({ message: "Listing not found" });
-        }
-        }   catch (error) {
-        res.status(500).json({ message: "Error updating listing", error });
-    }
-}
-
-
-export async function deleteListing(req: Request<{ id: string }>, res: Response) {
     const { id } = req.params;
 
-    try {
+    if (!req.userId) {
+        return res.status(401).json({
+        message: "Authentication required",
+        });
+    }
+
+    const existingListing = await getListing(id);
+
+    if (!existingListing) {
+        return res.status(404).json({
+        message: "Listing not found",
+        });
+    }
+
+    if (existingListing.sellerId !== req.userId) {
+        return res.status(403).json({
+        message: "You are not allowed to delete this listing",
+        });
+    }
+
     const wasDeleted = await deleteExistingListing(id);
 
     if (!wasDeleted) {
-        return res.status(404).json({ message: "Listing not found" });
+        return res.status(404).json({
+        message: "Listing not found",
+        });
     }
 
-    return res.json({ message: "Listing deleted successfully" });
+    return res.status(200).json({
+        message: "Listing deleted successfully",
+    });
     } catch (error) {
-    return res.status(500).json({ message: "Error deleting listing", error });
+    return res.status(500).json({
+        message: "Error deleting listing",
+        error: (error as Error).message,
+    });
     }
 }

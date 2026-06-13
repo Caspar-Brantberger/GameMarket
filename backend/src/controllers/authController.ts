@@ -1,6 +1,8 @@
 import type {Request, Response} from "express";
 import type {LoginRequest,RegisterRequest} from "../types/auth";
 import {registerUser, loginUser, logoutUser} from "../services/authService";
+import type { AuthenticatedRequest } from "../middleware/requireAuth";
+import { getUserById } from "../repositories/userRepository";
 
 export async function register(req: Request, res: Response) {
     try {
@@ -48,4 +50,35 @@ export  async function logout(req: Request, res: Response) {
     return res.status(200).json({
     message: "User logged out successfully",
     });
+}
+
+export async function getCurrentUser(
+    req: AuthenticatedRequest,
+    res: Response
+) {
+    try {
+    if (!req.userId) {
+        return res.status(401).json({
+        error: "Authentication required",
+        });
+    }
+
+    const user = await getUserById(req.userId);
+
+    if (!user) {
+        return res.status(404).json({
+        error: "User not found",
+        });
+    }
+
+    const { passwordHash, ...publicUser } = user;
+
+    return res.status(200).json({
+        user: publicUser,
+    });
+    } catch {
+    return res.status(500).json({
+        error: "Could not fetch current user",
+    });
+    }
 }
