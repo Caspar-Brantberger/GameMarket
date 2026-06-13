@@ -4,29 +4,33 @@ import {
     createListing,
     updateListing,
     deleteListing,
+    type CreateListingData,
+    type UpdateListingData,
 } from "../repositories/listingRepository";
 
-import type { GameListing } from "../types/listing";
-
-export function getAllListings(): GameListing[] {
+export async function getAllListings() {
     return findAllListings();
 }
 
-export function getListing(id: string): GameListing | undefined {
+export async function getListing(id: string) {
     return findListingById(id);
 }
 
-export function createNewListing(listing: GameListing): GameListing {
+export async function createNewListing(
+    listing: CreateListingData
+) {
     return createListing(listing);
 }
 
-export function updateExistingListing(
+export async function updateExistingListing(
     id: string,
-    updatedData: Partial<GameListing>
-): GameListing | undefined {
+    updatedData: UpdateListingData
+) {
     return updateListing(id, updatedData);
 }
 
-export function deleteExistingListing(id: string): boolean {
+export async function deleteExistingListing(
+    id: string
+): Promise<boolean> {
     return deleteListing(id);
 }

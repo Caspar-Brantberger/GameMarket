@@ -2,78 +2,78 @@ import prisma from "../lib/prisma";
 import type { PublicUser } from "../types/user";
 
 type CreateUserData = {
-  username: string;
-  email: string;
-  passwordHash: string;
+    username: string;
+    email: string;
+    passwordHash: string;
 };
 
 type UpdateUserData = {
-  username?: string;
-  email?: string;
+    username?: string;
+    email?: string;
 };
 
 const publicUserSelect = {
-  id: true,
-  username: true,
-  email: true,
-  createdAt: true,
-  updatedAt: true,
+    id: true,
+    username: true,
+    email: true,
+    createdAt: true,
+    updatedAt: true,
 } as const;
 
 export async function createUser(
-  userData: CreateUserData
+    userData: CreateUserData
 ): Promise<PublicUser> {
-  return prisma.user.create({
+    return prisma.user.create({
     data: userData,
     select: publicUserSelect,
-  });
+    });
 }
 
 export async function getUserByEmail(email: string) {
-  return prisma.user.findUnique({
+    return prisma.user.findUnique({
     where: { email },
-  });
+    });
 }
 
 export async function getUserById(id: string) {
-  return prisma.user.findUnique({
+    return prisma.user.findUnique({
     where: { id },
-  });
+    });
 }
 
 export async function getAllUsers(): Promise<PublicUser[]> {
-  return prisma.user.findMany({
+    return prisma.user.findMany({
     select: publicUserSelect,
     orderBy: {
-      createdAt: "desc",
+        createdAt: "desc",
     },
-  });
+    });
 }
 
 export async function updateUser(
-  id: string,
-  updatedData: UpdateUserData
+    id: string,
+    updatedData: UpdateUserData
 ): Promise<PublicUser | undefined> {
-  try {
+    try {
     return await prisma.user.update({
-      where: { id },
-      data: updatedData,
-      select: publicUserSelect,
+        where: { id },
+        data: updatedData,
+        select: publicUserSelect,
     });
-  } catch {
+    } catch {
     return undefined;
-  }
+    }
 }
 
 export async function deleteUser(id: string): Promise<boolean> {
-  try {
+    try {
     await prisma.user.delete({
-      where: { id },
+        where: { id },
     });
 
     return true;
-  } catch {
+    } catch {
     return false;
-  }
+    }
 }
 

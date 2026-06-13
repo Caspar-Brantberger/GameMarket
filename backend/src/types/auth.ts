@@ -13,4 +13,5 @@ export type LoginRequest = {
 
 export type AuthResponse = {
     user: PublicUser;
+    token?:string;
 };
