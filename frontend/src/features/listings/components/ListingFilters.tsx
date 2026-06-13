@@ -65,10 +65,10 @@ export default function ListingFilters({
                 >
                 <option value="">All Platforms </option>
                 <option value="PC">PC </option>
-                <option value="PlayStation">PlayStation </option>
-                <option value="Xbox">Xbox </option>
-                <option value="Nintendo Switch">Nintendo Switch </option>
-                <option value="Mobile">Mobile </option>
+                <option value="PLAYSTATION">PlayStation </option>
+                <option value="XBOX">Xbox </option>
+                <option value="NINTENDO_SWITCH">Nintendo Switch </option>
+                <option value="MOBILE">Mobile </option>
                 </select>
 
                 <select
@@ -77,11 +77,11 @@ export default function ListingFilters({
                     className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                 <option value="">All Conditions </option>
-                <option value="New">New </option>
-                <option value="Used">Used </option>
-                <option value="Like New">Like New </option>
-                <option value="Refurbished">Refurbished </option>
-                <option value="Damaged">Damaged </option>
+                <option value="NEW">New </option>
+                <option value="USED">Used </option>
+                <option value="LIKE NEW">Like New </option>
+                <option value="REFURBISHED">Refurbished </option>
+                <option value="DAMAGED">Damaged </option>
                 </select>
 
                 <select
@@ -90,9 +90,9 @@ export default function ListingFilters({
             className="w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
             <option value="">All Statuses</option>
-            <option value="Available">Available</option>
-            <option value="Sold">Sold</option>
-            <option value="Pending">Pending</option>
+            <option value="AVAILABLE">Available</option>
+            <option value="SOLD">Sold</option>
+            <option value="PENDING">Pending</option>
             </select>
                 
 
