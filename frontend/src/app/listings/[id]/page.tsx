@@ -67,7 +67,7 @@ const listing: ListingDetails = await response.json();
             />
 
             <p className="text-lg font-semibold">
-            {Number(listing.price).toFixed(2)} kr
+            {Number(listing.price).toFixed(2)} $
             </p>
 
             <div className="flex flex-wrap gap-2 text-sm">
