@@ -14,7 +14,16 @@ export type ListingCondition =
 | "Refurbished" 
 | "Damaged";
 
-export type ListingStatus = "Available" | "Sold" | "Pending";
+export type ListingStatus = 
+"Available" 
+| "Sold" 
+| "Pending";
+
+export type Seller = {
+    id:string;
+    username: string;
+    email: string;
+};
 
 export type GameListing = {
     id: string;
@@ -26,8 +35,7 @@ export type GameListing = {
     genre?: string;
     condition: ListingCondition;
     sellerId: string;
-    sellerName: string;
-    sellerEmail?: string;
+    seller?: Seller;
     status: ListingStatus;
     createdAt: string;
     updatedAt: string;

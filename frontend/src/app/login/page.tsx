@@ -42,7 +42,7 @@ export default function LoginPage() {
     alert("Log in successful")
 
     console.log("Logged in user:", data.user);
-    alert("Login successful!");
+    //alert("Login successful!");
 } catch (error) {
     setError(
     error instanceof Error

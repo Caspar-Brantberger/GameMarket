@@ -44,7 +44,7 @@ export default function ListingCard({ listing }: ListingCardProps) {
                     </span>
                 </div>
 
-                <p className="mt-auto text-sm text-gray-500">Seller: {listing.sellerName}</p>
+                <p className="mt-auto text-sm text-gray-500">Seller: {listing.seller?.username ?? "Unknown seller"}</p>
 
             </div>
         </article>
