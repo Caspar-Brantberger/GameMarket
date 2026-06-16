@@ -8,13 +8,19 @@ import {
 } from "../controllers/listingController";
 
 import { requireAuth } from "../middleware/requireAuth";
+import rateLimit from "express-rate-limit";
 
 const router = Router();
+
+const createListingLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+    limit: 20,
+});
 
 router.get("/", getListings);
 router.get("/:id", getListingById);
 
-router.post("/", requireAuth, createListing);
+router.post("/",createListingLimiter, requireAuth, createListing);
 router.put("/:id", requireAuth, updateListing);
 router.delete("/:id", requireAuth, deleteListing);
 
