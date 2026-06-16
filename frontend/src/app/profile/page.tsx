@@ -158,6 +158,13 @@ export default function ProfilePage() {
                 
                 const data = await response .json() .catch(() => null); 
 
+                    if (response.status === 403) {
+                throw new Error(
+                data?.message ??
+                "You are not allowed to delete this profile"
+                );
+                }
+
                 if (!response.ok) { 
                     throw new Error( data?.message ?? data?.error ?? "Could not delete profile" ); 
                 } 

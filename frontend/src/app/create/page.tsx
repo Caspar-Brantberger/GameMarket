@@ -9,7 +9,7 @@ export default function CreateListingPage() {
     const router = useRouter();
 
 
-    //const [sellerId, setSellerId] = useState("");
+    
     const [checkingLogin, setCheckingLogin] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");

@@ -146,7 +146,8 @@ export default function EditListingPage() {
         );
         }
 
-        const authData = await authResponse.json();
+        const authData: { user: CurrentUser } =
+            await authResponse.json();
 
         const listingResponse = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/listings/${listingId}`,
@@ -154,6 +155,10 @@ export default function EditListingPage() {
             credentials: "include",
         }
         );
+
+        if (listingResponse.status === 404) { 
+            throw new Error("Listing not found."); }
+
 
         if (!listingResponse.ok) {
         throw new Error("Could not load listing.");
@@ -180,7 +185,6 @@ export default function EditListingPage() {
         setImageUrl(listingData.imageUrl ?? "");
         setGenre(listingData.genre ?? "");
         setLocation(listingData.location);
-        setSellerId(listingData.sellerId);
     } catch (error) {
         setError(
         error instanceof Error
@@ -202,11 +206,6 @@ export default function EditListingPage() {
     event.preventDefault();
     setError("");
 
-    if (!sellerId) {
-        setError("Could not identify the listing owner.");
-        return;
-    }
-
     try {
         setSubmitting(true);
 
@@ -214,6 +213,7 @@ export default function EditListingPage() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/listings/${listingId}`,
         {
             method: "PUT",
+            credentials:"include",
             headers: {
             "Content-Type": "application/json",
             },
@@ -264,7 +264,7 @@ export default function EditListingPage() {
     );
     }
 
-    if (error && !sellerId) {
+    if (error) {
     return (
         <main className="min-h-screen bg-black px-6 py-10 text-white">
         <section className="mx-auto max-w-2xl space-y-4">
