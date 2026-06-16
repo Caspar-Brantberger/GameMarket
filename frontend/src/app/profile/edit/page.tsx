@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+
 type UserProfile = {
     id: string;
     username: string;
@@ -25,45 +26,35 @@ export default function EditProfilePage() {
 
     useEffect(() => {
     async function loadUser() {
-        const storedUser = localStorage.getItem("currentUser");
-
-        if (!storedUser) {
-        router.replace("/login");
-        return;
-        }
-
-        let currentUser: {
-        id?: string;
-        };
 
         try {
-        currentUser = JSON.parse(storedUser);
-        } catch {
-        localStorage.removeItem("currentUser");
-        router.replace("/login");
-        return;
-        }
+            setLoading(true);
+            setError("");
 
-        if (!currentUser.id) {
-        localStorage.removeItem("currentUser");
-        router.replace("/login");
-        return;
-        }
-
-        try {
         const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/users/${currentUser.id}`
+            `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
+            {
+                credentials: "include",
+            }
         );
+        if (response.status === 401){
+            router.replace("/login");
+            return;
+        }
 
-        const data: UserProfile = await response.json();
+        if(!response.ok){
+            throw new Error("Could not load profile");
+        }
+
+        const data: { user: UserProfile } = await response.json();
 
         if (!response.ok) {
             throw new Error("Could not load profile");
         }
 
-        setUserId(data.id);
-        setUsername(data.username);
-        setEmail(data.email);
+        setUserId(data.user.id);
+        setUsername(data.user.username);
+        setEmail(data.user.email);
         } catch (error) {
         setError(
             error instanceof Error
@@ -96,6 +87,7 @@ export default function EditProfilePage() {
         `${process.env.NEXT_PUBLIC_API_URL}/api/users/${userId}`,
         {
             method: "PUT",
+            credentials:"include",
             headers: {
             "Content-Type": "application/json",
             },
@@ -108,6 +100,16 @@ export default function EditProfilePage() {
 
         const data = await response.json();
 
+        if(response.status === 401){
+            router.replace("/login")
+            return;
+        }
+        if(response.status === 403){
+            throw new Error(
+                data.message ?? 
+                "You are not allowed to update this profile");
+        }
+
         if (!response.ok) {
         throw new Error(
             data.message ??
@@ -116,22 +118,8 @@ export default function EditProfilePage() {
         );
         }
 
-        const storedUser = localStorage.getItem("currentUser");
-        const previousUser = storedUser
-        ? JSON.parse(storedUser)
-        : {};
 
-        localStorage.setItem(
-        "currentUser",
-        JSON.stringify({
-            ...previousUser,
-            id: data.id ?? userId,
-            username: data.username ?? username.trim(),
-            email: data.email ?? email.trim(),
-        })
-        );
-
-        window.location.replace("/profile");
+        router.replace("/profile");
     } catch (error) {
         setError(
         error instanceof Error
@@ -140,7 +128,7 @@ export default function EditProfilePage() {
         );
     } finally {
         setSubmitting(false);
-    }
+        }
     }
 
     if (loading) {

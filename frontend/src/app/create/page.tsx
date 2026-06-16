@@ -10,7 +10,7 @@ export default function CreateListingPage() {
 
 
     //const [sellerId, setSellerId] = useState("");
-    //const [checkingLogin, setCheckingLogin] = useState(true);
+    const [checkingLogin, setCheckingLogin] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
 
@@ -51,24 +51,27 @@ export default function CreateListingPage() {
     }
 
     useEffect(() => {
-        const storedUser = localStorage.getItem("currentUser");
-
-        if(!storedUser){
-            router.replace("/login");
-            return;
-        }
-        try{
-            const currentUser = JSON.parse(storedUser);
-
-            if(!currentUser.id){
-                localStorage.removeItem("currentUser");
+        async function checkAuthentication(){
+            try{
+                const response = await fetch(
+                    `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`, { 
+                        credentials: "include", 
+                    }
+                );
+                if(!response.ok){
+                    router.replace("/login")
+                    return;
+                }
+            }catch{
                 router.replace("/login");
+
+            }finally{
+                setCheckingLogin(false);
             }
-        }catch{
-            localStorage.removeItem("currentUser");
-            router.replace("/login");
+
         }
-    }, [router]);
+        checkAuthentication();
+    },[router]);
 
     async function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
 
@@ -93,46 +96,14 @@ export default function CreateListingPage() {
         e.preventDefault();
         setError("");
 
-        const storedUser = localStorage.getItem("currentUser")
-
-    if (!storedUser) {
-    router.replace("/login");
-    return;
-    }
-    
-    let sellerId: string;
-
-    try {
-    const currentUser = JSON.parse(storedUser);
-
-    if (!currentUser.id) {
-        localStorage.removeItem("currentUser");
-        router.replace("/login");
-        return;
-    }
-
-    sellerId = currentUser.id;
-    } catch {
-    localStorage.removeItem("currentUser");
-    router.replace("/login");
-    return;
-    }
-
-    
-
-
-    if (!imageUrl) {
-    setError("Please select an image.");
-    return;
-    }
-
-    try {
+            try {
     setSubmitting(true);
 
     const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/listings`,
         {
         method: "POST",
+        credentials: "include",
         headers: {
             "Content-Type": "application/json",
         },
@@ -146,12 +117,16 @@ export default function CreateListingPage() {
             genre,
             location,
             status: "AVAILABLE",
-            sellerId,
         }),
         }
     );
 
     const data = await response.json();
+
+    if (response.status === 401) {
+        router.replace("/login");
+        return;
+    }
 
     if (!response.ok) {
         throw new Error(
@@ -170,7 +145,7 @@ export default function CreateListingPage() {
     } finally {
     setSubmitting(false);
     }
-    }
+}
 
         return (
     <main className="min-h-screen bg-black px-6 py-10 text-white">

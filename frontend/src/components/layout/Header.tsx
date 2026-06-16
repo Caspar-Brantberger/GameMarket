@@ -15,49 +15,89 @@ export default function Header() {
     const router = useRouter();
     const [currentUser,SetCurrentUser] = useState<CurrentUser | null>(null);
 
-    function loadCurrentUser() {
-        const storedUser = localStorage.getItem("currentUser");
 
-        if(!storedUser){
-            SetCurrentUser(null);
-            return;
-        }
-        try{
-            const parsedUser = JSON.parse(storedUser);
-            SetCurrentUser(parsedUser);
-        }catch{
-            localStorage.removeItem("currentUser");
-            SetCurrentUser(null);
-        }
-    }
     useEffect(() => {
-    const timeoutId = setTimeout(() => {
-        loadCurrentUser();
-    }, 0);
+        let isMounted = true;
 
-    return () => clearTimeout(timeoutId);
-    }, []);
+    async function fetchCurrentUser() {
+    try {
+        const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
+        {
+            credentials: "include",
+        }
+        );
 
-    async function handleLogout(){
-        const storedUser = localStorage.getItem("currentUser");
-
-        if(!storedUser){
-            alert("You are not currently logged in.");
-            return
+        if (!isMounted) {
+        return;
         }
 
-        try{
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`, {
-        method: "POST",
-            });
-        }catch(error){
-            console.error("Logout request failed", error);
-        }finally{
-            localStorage.removeItem("currentUser");
-            router.push("/login")
-            window.location.replace("/login");
+        if (response.status === 401) {
+        SetCurrentUser(null);
+        return;
+        }
+
+        if (!response.ok) {
+        throw new Error("Could not load current user");
+        }
+
+        const data: { user: CurrentUser } =
+        await response.json();
+
+        if (isMounted) {
+        SetCurrentUser(data.user);
+        }
+    } catch (error) {
+        console.error("Could not load current user:", error);
+
+        if (isMounted) {
+        SetCurrentUser(null);
         }
     }
+    }
+
+    void fetchCurrentUser();
+
+    return () => {
+    isMounted = false;
+    };
+}, []);
+
+
+    async function handleLogout() {
+
+    try {
+    const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/logout`,
+        {
+        method: "POST",
+        credentials: "include",
+        }
+    );
+
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok) {
+        throw new Error(
+        data?.message ??
+            data?.error ??
+            "Could not log out"
+        );
+    }
+
+    SetCurrentUser(null);
+    router.replace("/login");
+    router.refresh();
+    } catch (error) {
+    console.error("Logout request failed:", error);
+
+    alert(
+        error instanceof Error
+        ? error.message
+        : "Could not log out"
+    );
+    }
+}
 
         return (
     <header className="bg-gray-800 text-white p-4">

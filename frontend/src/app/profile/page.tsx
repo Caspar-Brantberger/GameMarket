@@ -23,96 +23,65 @@ export default function ProfilePage() {
 
     useEffect(() => {
     async function loadProfile() {
-        const storedUser = localStorage.getItem("currentUser");
+    try {
+        setLoading(true);
+        setError("");
 
-        if (!storedUser) {
-        router.replace("/login");
-        return;
-        }
-
-        let currentUser: UserProfile;
-
-        try {
-        currentUser = JSON.parse(storedUser);
-        
-        console.log("Stored currentUser:", currentUser);
-        console.log("Current user id:", currentUser.id);
-
-
-        if (!currentUser.id) {
-            localStorage.removeItem("currentUser");
-            router.replace("/login");
-            return;
-        }
-        } catch {
-        localStorage.removeItem("currentUser");
-        router.replace("/login");
-        return;
-        }
-
-        try {
-        const [userResponse, listingsResponse] = await Promise.all([
+        const [authResponse, listingsResponse] =
+        await Promise.all([
             fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/users/${currentUser.id}`
+            `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
+            {
+                credentials: "include",
+            }
             ),
-            fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/listings`),
+            fetch(
+            `${process.env.NEXT_PUBLIC_API_URL}/api/listings`
+            ),
         ]);
 
-        console.log("User response status:", userResponse.status);
-        console.log("Listings response status:", listingsResponse.status);
+        if (authResponse.status === 401) {
+        router.replace("/login");
+        return;
+        }
 
-        if (!userResponse.ok) {
-        const errorText = await userResponse.text();
-
-        console.error("User request failed:", {
-        status: userResponse.status,
-        body: errorText,
-        url: `${process.env.NEXT_PUBLIC_API_URL}/api/users/${currentUser.id}`,
-        });
-
-        throw new Error(
-        `Could not load profile (${userResponse.status})`
-            );
+        if (!authResponse.ok) {
+        throw new Error("Could not load profile");
         }
 
         if (!listingsResponse.ok) {
         throw new Error("Could not load listings");
         }
 
-
-
-    const userResponseData: { user: UserProfile } =
-    await userResponse.json();
-
-const userData = userResponseData.user;
-
-    if (!userData) {
-        throw new Error("User data was not found");
-        }
+        const authData: { user: UserProfile } =
+        await authResponse.json();
 
         const listingsData: GameListing[] =
-            await listingsResponse.json();
+        await listingsResponse.json();
 
-        setUser(userData);
+        setUser(authData.user);
 
         setMyListings(
-            listingsData.filter(
-            (listing) => listing.sellerId === currentUser.id
-            )
+        listingsData.filter(
+            (listing) =>
+            listing.sellerId === authData.user.id
+        )
         );
-        } catch (error) {
+    } catch (error) {
         setError(
-            error instanceof Error
+        error instanceof Error
             ? error.message
             : "Something went wrong"
         );
-        } finally {
+    } finally {
         setLoading(false);
         }
     }
 
     loadProfile();
     }, [router]);
+
+    
 
     async function handleDeleteListing(listingId: string) {
     const confirmed = window.confirm(
@@ -124,16 +93,26 @@ const userData = userResponseData.user;
     }
 
     try {
+        setError("");
+
         const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/api/listings/${listingId}`,
         {
             method: "DELETE",
+            credentials:"include",
         }
         );
 
-        if (!response.ok) {
+        if(response.status === 401){
+            router.replace("/login");
+            return;
+        }
+
+        
         const data = await response.json().catch(() => null);
 
+        if (!response.ok) {
+    
         throw new Error(
             data?.message ??
             data?.error ??
@@ -155,47 +134,42 @@ const userData = userResponseData.user;
         }
     }
 
-    async function handleDeleteProfile() {
-    if (!user) {
-        return;
-    }
+    async function handleDeleteProfile() { 
 
-    const confirmed = window.confirm(
-        "Are you sure you want to delete your profile?"
-    );
+        if (!user) { 
+            return; 
+        } 
 
-    if (!confirmed) {
-        return;
-    }
+        const confirmed = window.confirm( "Are you sure you want to delete your profile?" ); 
 
-    try {
-        const response = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/users/${user.id}`,
-        {
-            method: "DELETE",
+        if (!confirmed) { 
+            return; 
+        } try { 
+            setError(""); 
+            const response = await fetch( `${process.env.NEXT_PUBLIC_API_URL}/api/users/${user.id}`, 
+                { 
+                    method: "DELETE", credentials: "include",
+                }); 
+                
+                if (response.status === 401) { 
+                    router.replace("/login"); 
+                    return; 
+                } 
+                
+                const data = await response .json() .catch(() => null); 
+
+                if (!response.ok) { 
+                    throw new Error( data?.message ?? data?.error ?? "Could not delete profile" ); 
+                } 
+
+                window.location.replace("/"); 
+
+            } catch (error) { 
+                setError( error instanceof Error ? error.message : "Could not delete profile" 
+
+                ); 
+            } 
         }
-        );
-
-        if (!response.ok) {
-        const data = await response.json().catch(() => null);
-
-        throw new Error(
-            data?.message ??
-            data?.error ??
-            "Could not delete profile"
-        );
-        }
-
-        localStorage.removeItem("currentUser");
-        window.location.replace("/");
-    } catch (error) {
-        setError(
-        error instanceof Error
-            ? error.message
-            : "Could not delete profile"
-        );
-    }
-    }
 
     if (loading) {
     return (

@@ -19,6 +19,7 @@ export default function LoginPage() {
     `${process.env.NEXT_PUBLIC_API_URL}/api/auth/login`,
     {
         method: "POST",
+        credentials:"include",
         headers: {
         "Content-Type": "application/json",
         },
@@ -36,13 +37,10 @@ export default function LoginPage() {
         data.error ?? data.message ?? "Invalid email or password"
     );
     }
-
-    localStorage.setItem("currentUser",JSON.stringify(data.user));
-    window.location.href = "/";
     alert("Log in successful")
+    window.location.href = "/";
 
     console.log("Logged in user:", data.user);
-    //alert("Login successful!");
 } catch (error) {
     setError(
     error instanceof Error

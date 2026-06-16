@@ -124,66 +124,77 @@ export default function EditListingPage() {
 
     useEffect(() => {
     async function loadListing() {
-        const storedUser = localStorage.getItem("currentUser");
+    try {
+        setLoading(true);
+        setError("");
 
-        if (!storedUser) {
-        router.replace("/login");
-        return;
+        const authResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/auth/me`,
+        {
+            credentials: "include",
         }
-
-        let currentUser: CurrentUser;
-
-        try {
-        currentUser = JSON.parse(storedUser);
-
-        if (!currentUser.id) {
-            throw new Error("Invalid user");
-        }
-        } catch {
-        localStorage.removeItem("currentUser");
-        router.replace("/login");
-        return;
-        }
-
-        try {
-        const response = await fetch(
-            `${process.env.NEXT_PUBLIC_API_URL}/api/listings/${listingId}`
         );
 
-        const data: ApiListing = await response.json();
-
-        if (!response.ok) {
-            throw new Error("Could not load listing");
+        if (authResponse.status === 401) {
+        router.replace("/login");
+        return;
         }
 
-        if (data.sellerId !== currentUser.id) {
-            setError("You can only edit your own listings.");
-            return;
+        if (!authResponse.ok) {
+        throw new Error(
+            "Could not verify your authentication."
+        );
         }
 
-        setTitle(data.title);
-        setDescription(data.description);
-        setPrice(String(data.price));
-        setPlatform(mapPlatformFromApi(data.platform));
-        setCondition(mapConditionFromApi(data.condition));
-        setStatus(mapStatusFromApi(data.status));
-        setImageUrl(data.imageUrl ?? "");
-        setGenre(data.genre ?? "");
-        setLocation(data.location);
-        setSellerId(data.sellerId);
-        } catch (error) {
+        const authData = await authResponse.json();
+
+        const listingResponse = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/api/listings/${listingId}`,
+        {
+            credentials: "include",
+        }
+        );
+
+        if (!listingResponse.ok) {
+        throw new Error("Could not load listing.");
+        }
+
+        const listingData: ApiListing =
+        await listingResponse.json();
+
+        if (listingData.sellerId !== authData.user.id) {
+        setError("You can only edit your own listings.");
+        return;
+        }
+
+        setTitle(listingData.title);
+        setDescription(listingData.description);
+        setPrice(String(listingData.price));
+        setPlatform(
+        mapPlatformFromApi(listingData.platform)
+        );
+        setCondition(
+        mapConditionFromApi(listingData.condition)
+        );
+        setStatus(mapStatusFromApi(listingData.status));
+        setImageUrl(listingData.imageUrl ?? "");
+        setGenre(listingData.genre ?? "");
+        setLocation(listingData.location);
+        setSellerId(listingData.sellerId);
+    } catch (error) {
         setError(
-            error instanceof Error
+        error instanceof Error
             ? error.message
             : "Something went wrong"
         );
-        } finally {
+    } finally {
         setLoading(false);
-        }
+    }
     }
 
     loadListing();
-    }, [listingId, router]);
+}, [listingId, router]);
+
 
     async function handleSubmit(
     event: React.FormEvent<HTMLFormElement>
