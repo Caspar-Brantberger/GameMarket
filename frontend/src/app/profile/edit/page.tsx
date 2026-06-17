@@ -13,6 +13,11 @@ type UserProfile = {
     updatedAt?: string;
 };
 
+type FieldErrors = {
+    username?: string[];
+    email?: string[];
+};
+
 export default function EditProfilePage() {
     const router = useRouter();
 
@@ -23,6 +28,7 @@ export default function EditProfilePage() {
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
     const [error, setError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
 
     useEffect(() => {
     async function loadUser() {
@@ -74,6 +80,7 @@ export default function EditProfilePage() {
     ) {
     event.preventDefault();
     setError("");
+    setFieldErrors({})
 
     if (!userId) {
         setError("Could not identify the current user.");
@@ -98,10 +105,15 @@ export default function EditProfilePage() {
         }
         );
 
-        const data = await response.json();
+        const data = await response.json().catch(() => null);
 
         if(response.status === 401){
             router.replace("/login")
+            return;
+        }
+
+        if(response.status === 400 && data?.details){
+            setFieldErrors(data.details);
             return;
         }
         if(response.status === 403){
@@ -180,6 +192,13 @@ export default function EditProfilePage() {
                 required
                 className="mt-1 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white"
             />
+
+            {fieldErrors.username?.[0] && (
+            <p className="mt-1 text-sm text-red-400">
+            {fieldErrors.username[0]}
+            </p>
+            )}
+
             </div>
 
             <div>
@@ -200,6 +219,13 @@ export default function EditProfilePage() {
                 required
                 className="mt-1 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white"
             />
+            
+            {fieldErrors.email?.[0] && (
+            <p className="mt-1 text-sm text-red-400">
+            {fieldErrors.email[0]}
+            </p>
+            )}
+
             </div>
 
             {error && (

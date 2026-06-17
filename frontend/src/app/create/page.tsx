@@ -22,6 +22,20 @@ export default function CreateListingPage() {
     const [imageUrl, setImageUrl] = useState("");
     const [genre, setGenre] = useState("");
     const [location, setLocation] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<ListingFieldErrors>({});
+
+
+    type ListingFieldErrors = {
+    title?: string[];
+    description?: string[];
+    price?: string[];
+    platform?: string[];
+    condition?: string[];
+    imageUrl?: string[];
+    genre?: string[];
+    location?: string[];
+    status?: string[];
+    };
 
     function mapPlatform(platform: GamePlatform){
         const platformMap = {
@@ -95,6 +109,7 @@ export default function CreateListingPage() {
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setError("");
+        setFieldErrors({})
 
             try {
     setSubmitting(true);
@@ -121,10 +136,15 @@ export default function CreateListingPage() {
         }
     );
 
-    const data = await response.json();
+    const data = await response.json().catch(() => null);
 
     if (response.status === 401) {
         router.replace("/login");
+        return;
+    }
+
+    if(response.status === 400&& data?.details){
+        setFieldErrors(data.details);
         return;
     }
 
@@ -178,6 +198,13 @@ export default function CreateListingPage() {
                 placeholder="Enter title of the game"
                 className="mt-1 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white"
             />
+
+                {fieldErrors.title?.[0] && (
+                <p className="mt-1 text-sm text-red-400">
+                {fieldErrors.title[0]}
+                </p>
+                )}
+
             </div>
 
             <div>
@@ -189,6 +216,13 @@ export default function CreateListingPage() {
                 placeholder="Describe the game and condition..."
                 className="mt-1 min-h-28 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white"
             />
+
+            {fieldErrors.description?.[0] && (
+            <p className="mt-1 text-sm text-red-400">
+            {fieldErrors.description[0]}
+            </p>
+                )}
+
             </div>
 
             <div className="grid gap-5 sm:grid-cols-2">
@@ -204,6 +238,13 @@ export default function CreateListingPage() {
                 placeholder="299"
                 className="mt-1 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white"
                 />
+
+                {fieldErrors.price?.[0] && (
+                <p className="mt-1 text-sm text-red-400">
+                {fieldErrors.price[0]}
+                </p>
+                )}
+
             </div>
 
             <div>
@@ -231,6 +272,13 @@ export default function CreateListingPage() {
                 placeholder="RPG"
                 className="mt-1 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white"
                 />
+
+                {fieldErrors.genre?.[0] && (
+                <p className="mt-1 text-sm text-red-400">
+                {fieldErrors.genre[0]}
+                </p>
+                )}
+
             </div>
 
             <div>
@@ -260,6 +308,13 @@ export default function CreateListingPage() {
                 placeholder="City, Country"
                 className="mt-1 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white"
             />
+
+                {fieldErrors.location?.[0] && (
+                <p className="mt-1 text-sm text-red-400">
+                {fieldErrors.location[0]}
+                </p>
+                )}
+
             </div>
 
             <div>
@@ -278,6 +333,12 @@ export default function CreateListingPage() {
     placeholder="https://example.com/game-cover.jpg"
     className="mt-1 w-full rounded-md border border-gray-700 bg-gray-800 px-3 py-2 text-white"
     />
+    
+    {fieldErrors.imageUrl?.[0] && (
+    <p className="mt-1 text-sm text-red-400">
+    {fieldErrors.imageUrl[0]}
+    </p>
+    )}
 
     <p className="mt-2 text-sm text-gray-400">
     Leave empty to use the default GameMarket image.

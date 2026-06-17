@@ -8,10 +8,19 @@ export default function LoginPage() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+    type FieldErrors = { 
+        email?: string[]; 
+        password?: string[]; 
+    };
 
     async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
+
         setError("");
+        setFieldErrors({});
+
         try {
     setLoading(true);
 
@@ -30,13 +39,20 @@ export default function LoginPage() {
     }
     );
 
-    const data = await response.json();
+    const data = await response.json().catch(() => null);
 
     if (!response.ok) {
+
+        if(response.status=== 400 && data?.details){
+            setFieldErrors(data.details);
+            return;
+        }
+
     throw new Error(
         data.error ?? data.message ?? "Invalid email or password"
     );
     }
+
     alert("Log in successful")
     window.location.href = "/";
 
@@ -80,6 +96,12 @@ export default function LoginPage() {
                             className="mt-1 block w-full bg-gray-800 text-gray-300 placeholder:text-gray-500 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Enter your email"
                         />
+
+                        {fieldErrors.email?.[0] && (
+                        <p className="mt-1 text-sm text-red-400">
+                            {fieldErrors.email[0]}
+                            </p>
+                            )}
                     </div>
 
                     <div>
@@ -95,6 +117,13 @@ export default function LoginPage() {
                             className="mt-1 block w-full bg-gray-800 text-gray-300 placeholder:text-gray-500 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Enter your password"
                         />
+
+                        {fieldErrors.password?.[0] && (
+                        <p className="mt-1 text-sm text-red-400">
+                        {fieldErrors.password[0]}
+                        </p>
+                        )}
+
                     </div>
                     {error && (
                     <p className="rounded-md border border-red-700 bg-red-950 p-3 text-sm text-red-300">
@@ -106,6 +135,7 @@ export default function LoginPage() {
                     <div>
                         <button
                             type="submit"
+                            disabled={loading}
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
                         >
                             {loading ? "Logging in...": "Login"}
