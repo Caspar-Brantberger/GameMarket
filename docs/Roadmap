@@ -1,0 +1,419 @@
+GameMarket MVP Roadmap
+Project idea
+GameMarket is a simple Blocket-inspired marketplace for video games where users can browse, filter, view, create, update, and delete game listings.
+The project is built as a hobby and learning project to practice modern full-stack development, API design, authentication, authorization, database integration, and frontend/backend communication.
+The goal is to create a functional MVP rather than a complete production marketplace.
+
+1. Frontend
+Goal
+Build a responsive user interface where visitors can browse listings and authenticated users can manage their profile and listings.
+1.1 Frontend structure
+frontend/src/
+  app/
+    page.tsx
+
+    login/
+      page.tsx
+
+    register/
+      page.tsx
+
+    profile/
+      page.tsx
+      edit/
+        page.tsx
+
+    listings/
+      page.tsx
+      [id]/
+        page.tsx
+      create/
+        page.tsx
+      edit/
+        [id]/
+          page.tsx
+
+  components/
+    layout/
+      Header.tsx
+      Footer.tsx
+
+    ui/
+
+  features/
+    listings/
+      components/
+        ListingCard.tsx
+        ListingGrid.tsx
+        ListingFilters.tsx
+
+      utils/
+        filterListings.ts
+
+  lib/
+    api.ts
+
+  types/
+    listing.ts
+
+The exact structure may differ as the application develops.
+1.2 Listing types
+File:
+frontend/src/types/listing.ts
+
+Relevant types include:
+GameListing
+GamePlatform
+ListingCondition
+ListingStatus
+A listing contains fields such as:
+id
+title
+platform
+genre
+price
+condition
+status
+location
+description
+imageUrl
+sellerId
+seller information
+createdAt
+updatedAt
+1.3 Frontend components
+Main components include:
+Header
+Footer
+ListingCard
+ListingGrid
+ListingFilters
+ListingCard displays information such as:
+title
+platform
+genre
+price
+condition
+location
+seller
+ListingGrid:
+receives an array of listings
+renders one ListingCard for each listing
+ListingFilters can filter by:
+search text
+platform
+genre
+maximum price
+location
+1.4 Pages
+Home page /
+Includes:
+header
+hero section
+link to listings
+create-listing action
+latest listings
+footer
+Listings page /listings
+Includes:
+all available listings
+filters
+listing cards
+optional sorting
+Listing details /listings/[id]
+Includes:
+title
+image
+price
+platform
+genre
+condition
+location
+description
+seller information
+ownership actions when applicable
+Create listing page
+Authenticated users can create listings using fields such as:
+title
+platform
+genre
+price
+condition
+location
+description
+image URL
+The seller ID is taken from the authenticated user and is not trusted from frontend input.
+Edit listing page
+Listing owners can:
+update their listings
+change listing information
+delete their listings
+Authentication pages
+Users can:
+register
+log in
+log out
+Validation errors returned by the backend are displayed next to the relevant form fields.
+Profile pages
+Authenticated users can:
+view their profile
+update their username and email
+delete their account
+
+2. Backend
+Goal
+Provide a REST API for authentication, users, and game listings.
+2.1 Backend structure
+backend/src/
+  config/
+  controllers/
+  middleware/
+  repositories/
+  routes/
+  services/
+  types/
+  validation/
+
+  app.ts
+  server.ts
+
+The backend follows this architecture:
+Route → Controller → Service → Repository
+
+2.2 Backend scripts
+{
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "start": "node dist/server.js"
+  }
+}
+
+2.3 API endpoints
+Health
+GET /api/health
+
+Authentication
+POST /api/auth/register
+POST /api/auth/login
+POST /api/auth/logout
+GET  /api/auth/me
+
+Listings
+GET    /api/listings
+GET    /api/listings/:id
+POST   /api/listings
+PUT    /api/listings/:id
+DELETE /api/listings/:id
+
+Users
+GET    /api/users/:id
+PUT    /api/users/:id
+DELETE /api/users/:id
+
+2.4 Backend layers
+Routes
+Responsible for:
+defining endpoint URLs
+attaching middleware
+connecting endpoints to controllers
+Controllers
+Responsible for:
+reading request parameters and bodies
+reading authenticated user information
+returning HTTP responses
+returning appropriate status codes
+Services
+Responsible for:
+business logic
+authentication logic
+ownership checks
+preparing data
+Repositories
+Responsible for:
+reading data from PostgreSQL
+creating records
+updating records
+deleting records
+communicating with Prisma
+
+3. Database
+Goal
+Store users and listings in PostgreSQL.
+3.1 Technology
+PostgreSQL
+Prisma ORM
+Prisma PostgreSQL adapter
+3.2 Main models
+User
+Contains fields such as:
+id
+username
+email
+passwordHash
+createdAt
+updatedAt
+Listing
+Contains fields such as:
+id
+title
+platform
+genre
+price
+condition
+status
+location
+description
+imageUrl
+sellerId
+createdAt
+updatedAt
+A listing belongs to a user through sellerId.
+
+4. Authentication and authorization
+Goal
+Allow users to manage their own account and listings without being able to modify another user's resources.
+Authentication
+Passwords are hashed using bcrypt.
+Login creates a signed JSON Web Token.
+The token is stored in an HTTP-only cookie.
+Protected requests use the authentication cookie.
+/api/auth/me returns the currently authenticated user.
+Authorization
+Only authenticated users can create listings.
+Only the listing owner can update or delete a listing.
+Only the authenticated profile owner can update or delete their profile.
+sellerId is assigned by the backend using the authenticated user ID.
+
+5. Validation and basic security
+The MVP includes basic security suitable for a hobby project:
+Zod request validation
+bcrypt password hashing
+JWT authentication
+HTTP-only authentication cookies
+protected routes
+ownership checks
+Helmet security headers
+rate limiting for registration and login
+restricted CORS configuration
+frontend display of backend validation errors
+server-side control of listing ownership
+Advanced production security is outside the current MVP scope.
+
+6. Frontend and backend connection
+Frontend environment file
+frontend/.env.local
+
+Example:
+NEXT_PUBLIC_API_URL=http://localhost:5000
+
+Backend environment file
+backend/.env
+
+Contains values such as:
+PORT=5000
+DATABASE_URL=postgresql://...
+JWT_SECRET=...
+
+Environment files must not be committed to Git.
+Data flow
+Frontend
+→ Fetch request
+→ Express API
+→ Controller
+→ Service
+→ Repository
+→ Prisma
+→ PostgreSQL
+
+The frontend no longer depends on mock listings for the main application flow.
+
+7. MVP checklist
+Frontend
+Home page exists
+Header exists
+Listings page exists
+Listings are loaded from the backend
+Listing filters exist
+Listing details page exists
+Create listing form exists
+Edit listing functionality exists
+Delete listing functionality exists
+Registration page exists
+Login page exists
+Profile page exists
+Profile update functionality exists
+Backend validation errors are displayed in forms
+Backend
+Backend starts with npm run dev
+Health endpoint exists
+Listing endpoints exist
+Authentication endpoints exist
+User endpoints exist
+Protected routes use authentication middleware
+Ownership checks are implemented
+Requests are validated with Zod
+Database
+PostgreSQL is connected
+Prisma is configured
+User data is stored in PostgreSQL
+Listing data is stored in PostgreSQL
+Listings can be created
+Listings can be updated
+Listings can be deleted
+Security
+Passwords are hashed
+JWT authentication is implemented
+Authentication uses an HTTP-only cookie
+Helmet is enabled
+Login and registration are rate limited
+CORS is configured
+Protected resources have authorization checks
+
+8. Not included in the MVP
+The first MVP does not include:
+internal chat
+payments
+notifications
+admin panel
+real image upload
+AWS S3
+Google Maps
+Elasticsearch
+two-factor authentication
+email verification
+password reset
+refresh-token rotation
+advanced search
+production deployment infrastructure
+
+9. Possible future improvements
+Possible improvements after the MVP:
+Real image uploads
+Favorites
+Pagination
+Improved search and sorting
+Messaging between users
+Email verification
+Password reset
+Better loading states
+Toast notifications instead of browser alerts
+Automated backend tests
+End-to-end frontend tests
+Deployment
+Responsive design improvements
+
+10. Current project status
+GameMarket has reached its first functional MVP.
+The application currently supports:
+user registration and login
+authenticated sessions
+profile management
+listing browsing and filtering
+listing details
+listing creation
+listing updates
+listing deletion
+PostgreSQL persistence
+validation and basic security
+The next development phase should focus on testing, UI polish, documentation, and optional quality-of-life features rather than adding large new systems.
