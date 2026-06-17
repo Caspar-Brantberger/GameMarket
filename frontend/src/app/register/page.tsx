@@ -11,13 +11,25 @@ export default function RegisterPage() {
     const [confirmPassword, setConfirmPassword] = useState(""); 
     const [loading,setLoading] = useState(false);
     const [error,setError] = useState("");
+    const [fieldErrors,setFieldErrors] = useState<FieldErrors>({});
+
+    type FieldErrors ={
+        username?: string[]; 
+        email?: string[]; 
+        password?: string[]; 
+        confirmPassword?: string[];
+
+    };
 
         async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
         e.preventDefault();
         setError("");
+        setFieldErrors({});
 
         if(password !== confirmPassword){
-            alert("Passwords do not match!");
+            setFieldErrors({
+            confirmPassword: ["Passwords do not match"],
+                });
             return;
         }
         try{
@@ -36,8 +48,14 @@ export default function RegisterPage() {
                     }),
                 }
             );
-            const data = await response.json();
+            const data = await response.json().catch(() => null);
+
             if(!response.ok){
+                if (response.status === 400 && data?.details) {
+                setFieldErrors(data.details);
+                return;
+                }
+
                 throw new Error(data.error ?? data.message ?? "Could not create account");
             }
             console.log("Registered user: ",data.user);
@@ -99,6 +117,12 @@ export default function RegisterPage() {
                             className="mt-1 block w-full bg-gray-800 text-gray-300 placeholder:text-gray-500 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Enter your username"
                         />
+
+                        {fieldErrors.username?.[0] && (
+                        <p className="mt-1 text-sm text-red-400">
+                        {fieldErrors.username[0]}
+                                </p>
+                            )}
                     </div>
 
                     <div>
@@ -113,6 +137,13 @@ export default function RegisterPage() {
                             className="mt-1 block w-full bg-gray-800 text-gray-300 placeholder:text-gray-500 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Enter your email"
                         />
+
+                        {fieldErrors.email?.[0] && (
+                        <p className="mt-1 text-sm text-red-400">
+                        {fieldErrors.email[0]}
+                        </p>
+
+                        )}
                     </div>
 
                     <div>
@@ -127,6 +158,13 @@ export default function RegisterPage() {
                             className="mt-1 block w-full bg-gray-800 text-gray-300 placeholder:text-gray-500 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Enter your password"
                         />
+
+                        {fieldErrors.password?.[0] && (
+                        <p className="mt-1 text-sm text-red-400">
+                        {fieldErrors.password[0]}
+                        </p>
+                        )}
+
                     </div>
 
                     <div>
@@ -141,6 +179,13 @@ export default function RegisterPage() {
                             className="mt-1 block w-full bg-gray-800 text-gray-300 placeholder:text-gray-500 border border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
                             placeholder="Confirm your password"
                         />
+
+                        {fieldErrors.confirmPassword?.[0] && (
+                        <p className="mt-1 text-sm text-red-400">
+                        {fieldErrors.confirmPassword[0]}
+                        </p>
+                        )}
+                        
                     </div>
 
                     <div>
