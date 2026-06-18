@@ -47,16 +47,16 @@ export default function HomePage() {
             <section className="mx-auto max-w-6xl space-y-8">
         <div>
         <p className="text-sm font-medium text-gray-500">GameMarket</p>
-            <h1 className="text-4xl font-bold tracking-tight text-gray-900">
+            <h1 className="text-4xl font-bold tracking-tight text-white">
             Buy and sell used video games
             </h1>
-                <p className="mt-3 max-w-2xl text-gray-600">
+                <p className="mt-3 max-w-2xl text-gray-500">
             Browse game listings by platform, price, condition and location.
             </p>
         </div>
 
         <div>
-            <h2 className="mb-4 text-2xl font-semibold text-gray-900">
+            <h2 className="mb-4 text-2xl font-semibold text-white">
             Latest listings
             </h2>
                 {latestListings.length > 0 ? (
