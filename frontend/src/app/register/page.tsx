@@ -97,7 +97,7 @@ export default function RegisterPage() {
                     <h1 className="mt-4 text-3xl font-bold">Create Account</h1>
 
                     <p className="text-gray-400">
-                        Join our community today and start exploring amazing games! Only logs the user in the console for demonstration purposes.
+                        Join our community today and start exploring amazing games! 
                     </p>
                 </div>
 
@@ -185,7 +185,7 @@ export default function RegisterPage() {
                         {fieldErrors.confirmPassword[0]}
                         </p>
                         )}
-                        
+
                     </div>
 
                     <div>
